@@ -1,9 +1,36 @@
 #!/bin/bash
 
-# Step1: Switch to master branch and pull the latest changes
-echo "Switching to master branch and updating..."
-git checkout master
-git pull
+# Step 1: git management
+
+# Prompt the user to enter the name of the release branch
+read -p "Enter the release branch name: " branch_name
+
+# Switch to the specified branch
+echo "Switching to branch: $branch_name..."
+git checkout $branch_name
+
+if [ $? -eq 0 ]; then
+    echo "Successfully switched to $branch_name."
+
+    # Check if there is an associated remote branch
+    remote_branch=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
+
+    if [ -n "$remote_branch" ]; then
+        # If a remote branch exists, pull the latest changes
+        echo "Pulling latest changes from $remote_branch..."
+        git pull
+        if [ $? -eq 0 ]; then
+            echo "Successfully updated $branch_name."
+        else
+            echo "Failed to pull from $remote_branch. Please check your network or remote repository settings."
+        fi
+    else
+        # No associated remote branch
+        echo "No remote branch associated with $branch_name. Skipping pull."
+    fi
+else
+    echo "Failed to switch to branch $branch_name. Please check if the branch exists."
+fi
 
 # Step2: Get the latest commit log on master branch
 latestCommitLog=$(git log -1)
@@ -18,7 +45,7 @@ if [ "$userConfirmation" != "yes" ]; then
 fi
 
 # Get the hash ID of the latest commit
-latestCommitHash=$(git rev-parse HEAD)
+latestCommitHash=$(git rev-parse $branch_name)
 
 # Step4: Check for .env file and back it up if it exists
 envFilePath="./.env"
@@ -40,8 +67,15 @@ docker compose down
 # Step7: Build containers with no cache
 docker compose build --no-cache
 
-# Step8: Remove dangling images
-docker rmi $(docker images -q -f "dangling=true")
+# Step 8: Remove dangling images if any exist
+dangling_images=$(docker images -q -f "dangling=true")
+
+if [ -n "$dangling_images" ]; then
+    echo "Removing dangling Docker images..."
+    docker rmi $dangling_images
+else
+    echo "No dangling images to remove."
+fi
 
 # Step9: Restore .env file
 if [ -f "$backupEnvFilePath" ]; then
