@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  test_standard_python:
+    build:
+      context: ./standard_python
+      dockerfile: Dockerfile
+    image: standard_python:${VERSION_TAG}
+    hostname: test_standard_python
+    container_name: test_standard_python
+    env_file:
+      - ${ENV_FILE}
+    volumes:
+       - ${CONFIG_FOLDER}:/config
+    #  - ./test_standard_python:/runprogram
+    command: ["sh", "-c", "sleep 5 && python /runprogram/example.py"]
+    # command: tail -f /dev/null
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+

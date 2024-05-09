@@ -1,0 +1,2 @@
+colorlog==6.7.0
+configparser==5.3.0

@@ -1,0 +1,12 @@
+# environment variables
+.env
+# temp files
+*.swp
+.idea/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# not ignore .gitkeep for keeping empty folders
+!.gitkeep
